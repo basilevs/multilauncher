@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.debug.core.launchConfigurationTypes">
+      <launchConfigurationType
+            delegate="multilauncher.MultiLaunch"
+            id="Multilauncher.MultiLaunch"
+            modes="run,debug"
+            name="MultiLaunch"
+            public="true">
+      </launchConfigurationType>
+   </extension>
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="multilauncher.TabGroup"
+            description="Launches many applications at once"
+            id="Multilauncher.TabGroup"
+            type="Multilauncher.MultiLaunch">
+      </launchConfigurationTabGroup>
+   </extension>
+   <extension
+         point="org.eclipse.debug.ui.launchGroups">
+      <launchGroup
+            bannerImage="icons/run_exc2.gif"
+            category="org.eclipse.ui.externaltools.builder"
+            id="Multilauncher.LaunchGroup"
+            image="icons/run_exc2.gif"
+            label="label"
+            mode="debug">
+      </launchGroup>
+      <launchGroup
+            bannerImage="icons/run_exc2.gif"
+            category="org.eclipse.ui.externaltools.builder"
+            id="Multilauncher.launchGroup2"
+            image="icons/run_exc2.gif"
+            label="label"
+            mode="run">
+      </launchGroup>
+   </extension>
+
+</plugin>
