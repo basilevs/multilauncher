@@ -35,6 +35,7 @@ public class MultiLaunch implements ILaunchConfigurationDelegate {
 				continue;
 			
 			//TODO: More filters are probably needed here
+			//WARN: relies on unique configuration naming (provided by IDE)
 			rv.put(iLaunchConfiguration.getName(), iLaunchConfiguration);
 		}
 		return rv;
@@ -44,7 +45,7 @@ public class MultiLaunch implements ILaunchConfigurationDelegate {
 		@SuppressWarnings("rawtypes")
 		List sequence = current.getAttribute(MultiLaunch.sequenceFieldName, Collections.emptyList());
 		ArrayList<ILaunchConfiguration> rv = new ArrayList<ILaunchConfiguration>(sequence.size());
-		Dictionary<String, ILaunchConfiguration> configurations = getValidConfigurations(current); 
+		Dictionary<String, ILaunchConfiguration> configurations = getValidConfigurations(current);
 		for (Object name: sequence) {			
 			rv.add(configurations.get(name));
 		}

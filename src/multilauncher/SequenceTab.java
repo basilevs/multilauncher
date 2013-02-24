@@ -2,11 +2,13 @@ package multilauncher;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
@@ -46,18 +48,19 @@ public class SequenceTab extends AbstractLaunchConfigurationTab {
 	@Override
 	public void initializeFrom(ILaunchConfiguration configuration) {
 		try {
-			//TODO: Support reordering of items
+			//TODO: create UI for item reordering 
 			@SuppressWarnings("rawtypes")
-			List sequence = configuration.getAttribute(MultiLaunch.sequenceFieldName, Collections.emptyList());
 			Dictionary<String, ILaunchConfiguration> allValidConfigurations = MultiLaunch.getValidConfigurations(configuration);
+			Collection<ILaunchConfiguration> configurationsToRun = MultiLaunch.getConfigurationsToRun(configuration);
 			//A list of configurations shown to user
 			ArrayList<String> ordered = new ArrayList<String>(allValidConfigurations.size());
+			//Configurations to check
+			ArrayList<String> sequence = new ArrayList<String>(configurationsToRun.size());
 			//First are selected ones in the order they appear in sequence
-			for (Object name : sequence) {
-				if (allValidConfigurations.get(name) == null)
-					continue;
-				ordered.add(name.toString());
-				allValidConfigurations.remove(name);
+			for (ILaunchConfiguration toRun : configurationsToRun) {
+				sequence.add(toRun.getName());
+				ordered.add(toRun.getName());
+				allValidConfigurations.remove(toRun.getName());
 			}
 			//Then others sorted by name
 			ArrayList<String> unused = Collections.list(allValidConfigurations.keys());
@@ -66,6 +69,7 @@ public class SequenceTab extends AbstractLaunchConfigurationTab {
 			_launchesViewer.setInput(ordered);
 			_launchesViewer.setCheckedElements(sequence.toArray());
 		} catch (CoreException e) {
+			DebugPlugin.log(e);
 			_launchesViewer.setInput(null);
 		}
 	}

@@ -28,16 +28,18 @@
             category="org.eclipse.ui.externaltools.builder"
             id="Multilauncher.LaunchGroup"
             image="icons/run_exc2.gif"
-            label="label"
-            mode="debug">
+            label="Debug"
+            mode="debug"
+            title="Debug multiple appplications">
       </launchGroup>
       <launchGroup
             bannerImage="icons/run_exc2.gif"
             category="org.eclipse.ui.externaltools.builder"
             id="Multilauncher.launchGroup2"
             image="icons/run_exc2.gif"
-            label="label"
-            mode="run">
+            label="Run"
+            mode="run"
+            title="Run multiple applications">
       </launchGroup>
    </extension>
 
