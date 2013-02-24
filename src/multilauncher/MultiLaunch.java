@@ -19,6 +19,7 @@ public class MultiLaunch implements ILaunchConfigurationDelegate {
 	static final String sequenceFieldName = "sequence";
 	public static Dictionary<String, ILaunchConfiguration> getValidConfigurations(ILaunchConfiguration current) throws CoreException
 	{
+		//TODO: consider another key to persist configuration association on rename
 		//TODO: deal with raw types
 		ILaunchConfiguration[] configurations = getLaunchManager().getLaunchConfigurations();
 		Hashtable<String, ILaunchConfiguration> rv = new Hashtable<>(configurations.length);
@@ -41,12 +42,15 @@ public class MultiLaunch implements ILaunchConfigurationDelegate {
 	}
 	public static Collection<ILaunchConfiguration> getConfigurationsToRun(ILaunchConfiguration current) throws CoreException
 	{
+		//WARN: configuration selection is lost on rename
 		@SuppressWarnings("rawtypes")
 		List sequence = current.getAttribute(MultiLaunch.sequenceFieldName, Collections.emptyList());
 		ArrayList<ILaunchConfiguration> rv = new ArrayList<ILaunchConfiguration>(sequence.size());
 		Dictionary<String, ILaunchConfiguration> configurations = getValidConfigurations(current);
-		for (Object name: sequence) {			
-			rv.add(configurations.get(name));
+		for (Object name: sequence) {
+			ILaunchConfiguration configuration = configurations.get(name);
+			if (configuration!=null)
+				rv.add(configuration);
 		}
 		return rv;
 	}
