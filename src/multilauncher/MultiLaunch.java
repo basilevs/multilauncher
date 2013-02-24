@@ -57,6 +57,7 @@ public class MultiLaunch implements ILaunchConfigurationDelegate {
 			ILaunch launch, IProgressMonitor monitor) throws CoreException {
 		for (ILaunchConfiguration toRun : getConfigurationsToRun(configuration)) {
 			//TODO: progress might be shown incorrectly
+			//TODO: we should probably process ILaunch return value somehow
 			toRun.launch(mode, monitor);
 		}
 	}
