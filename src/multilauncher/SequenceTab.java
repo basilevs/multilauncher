@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
-import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -26,6 +25,7 @@ public class SequenceTab extends AbstractLaunchConfigurationTab {
 
 	@Override
 	public void createControl(Composite parent) {
+		//TODO: consider removing extra Composite
 		Composite mainContainer = new Composite(parent, SWT.NONE);
 		setControl(mainContainer);
 		mainContainer.setLayout(new FillLayout());
@@ -49,7 +49,6 @@ public class SequenceTab extends AbstractLaunchConfigurationTab {
 	public void initializeFrom(ILaunchConfiguration configuration) {
 		try {
 			//TODO: create UI for item reordering 
-			@SuppressWarnings("rawtypes")
 			Dictionary<String, ILaunchConfiguration> allValidConfigurations = MultiLaunch.getValidConfigurations(configuration);
 			Collection<ILaunchConfiguration> configurationsToRun = MultiLaunch.getConfigurationsToRun(configuration);
 			//A list of configurations shown to user

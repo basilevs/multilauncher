@@ -1,10 +1,8 @@
 package multilauncher;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
@@ -14,8 +12,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
-import org.eclipse.debug.core.ILaunchDelegate;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
 
@@ -23,15 +19,18 @@ public class MultiLaunch implements ILaunchConfigurationDelegate {
 	static final String sequenceFieldName = "sequence";
 	public static Dictionary<String, ILaunchConfiguration> getValidConfigurations(ILaunchConfiguration current) throws CoreException
 	{
+		//TODO: deal with raw types
 		ILaunchConfiguration[] configurations = getLaunchManager().getLaunchConfigurations();
 		Hashtable<String, ILaunchConfiguration> rv = new Hashtable<>(configurations.length);
 		@SuppressWarnings("rawtypes")
-		Set modes = current.getModes();
+		Set requiredModes = current.getModes(); // Actually just run and debug
 		for (ILaunchConfiguration iLaunchConfiguration : configurations) {				
 			//TODO: Prevent configuration cycles (deep detection)
 			if (iLaunchConfiguration.contentsEqual(current))
 				continue;
-			if (!iLaunchConfiguration.getModes().containsAll(modes))
+			@SuppressWarnings("rawtypes")
+			Set modes= iLaunchConfiguration.getModes();
+			if (!modes.containsAll(requiredModes))
 				continue;
 			
 			//TODO: More filters are probably needed here
@@ -57,7 +56,7 @@ public class MultiLaunch implements ILaunchConfigurationDelegate {
 	public void launch(ILaunchConfiguration configuration, String mode,
 			ILaunch launch, IProgressMonitor monitor) throws CoreException {
 		for (ILaunchConfiguration toRun : getConfigurationsToRun(configuration)) {
-			//TODO: progress is shown incorrectly
+			//TODO: progress might be shown incorrectly
 			toRun.launch(mode, monitor);
 		}
 	}
