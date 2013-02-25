@@ -1,5 +1,16 @@
 package multilauncher;
 
+import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.List;
+
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchConfigurationListener;
+import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -15,6 +26,73 @@ public class Activator extends AbstractUIPlugin {
 	// The shared instance
 	private static Activator plugin;
 	
+	final ILaunchConfigurationListener _configurationListener = new ILaunchConfigurationListener() {
+		
+		public void updateConfiguration(ILaunchConfiguration configuration, List<String> sequence) throws CoreException {
+			assert(MultiLaunchConfiguration.isMultiLaunchConfiguration(configuration));
+			ILaunchConfigurationWorkingCopy workingCopy = configuration.getWorkingCopy();
+			workingCopy.setAttribute(MultiLaunch.sequenceFieldName, sequence);
+			//TODO: is it ok not to save parent?
+			workingCopy.doSave();
+		}
+		public void launchConfigurationRenamed(final ILaunchConfiguration movedFrom, final ILaunchConfiguration movedTo)
+		{
+			try {
+				MultiLaunchConfiguration.scanAll(new MultiLaunchConfiguration.Action() {
+					@Override
+					public void act(ILaunchConfiguration configuration)  throws CoreException {
+							List<String> sequence = MultiLaunchConfiguration.getReferencesNames(configuration);
+							//TODO: consider smarter in-place replace
+							List<String> newSequence = new ArrayList<String>(sequence.size());
+							Boolean modified = false; 
+							for (String name : sequence) {
+								if (name.equals(movedFrom.getName()))
+									name = movedTo.getName();
+								newSequence.add(name);
+							}
+							if (modified)
+								updateConfiguration(configuration, newSequence);
+					}
+				});
+			} catch (CoreException e)
+			{
+				//TODO: consider better exception handling
+				DebugPlugin.log(e);
+			}
+		}
+		@Override
+		public void launchConfigurationRemoved(final ILaunchConfiguration configuration) {
+			ILaunchConfiguration movedTo = MultiLaunchConfiguration.getLaunchManager().getMovedTo(configuration);
+			if (movedTo != null) {
+				launchConfigurationRenamed(configuration, movedTo);
+				return;
+			}
+			//when referenced configuration is removed, we should ensure that another configuration with same name won't become referenced instead
+			try {
+				MultiLaunchConfiguration.scanAll(new MultiLaunchConfiguration.Action() {
+					@Override
+					public void act(ILaunchConfiguration cleanupCandidate)  throws CoreException {
+						List<String> newSequence = MultiLaunchConfiguration.getReferencesNames(cleanupCandidate);
+						if (newSequence.remove(configuration.getName()))
+							updateConfiguration(configuration, newSequence);
+					}
+				});
+			} catch (CoreException e)
+			{
+				//TODO: consider better exception handling
+				DebugPlugin.log(e);
+			}
+		}
+		
+		@Override
+		public void launchConfigurationChanged(ILaunchConfiguration configuration) {
+		}
+		
+		@Override
+		public void launchConfigurationAdded(ILaunchConfiguration configuration) {
+		}
+	};
+
 	/**
 	 * The constructor
 	 */
@@ -28,6 +106,7 @@ public class Activator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
+		MultiLaunchConfiguration.getLaunchManager().addLaunchConfigurationListener(_configurationListener);
 	}
 
 	/*
@@ -35,6 +114,7 @@ public class Activator extends AbstractUIPlugin {
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
 	public void stop(BundleContext context) throws Exception {
+		MultiLaunchConfiguration.getLaunchManager().removeLaunchConfigurationListener(_configurationListener);
 		plugin = null;
 		super.stop(context);
 	}
@@ -58,4 +138,8 @@ public class Activator extends AbstractUIPlugin {
 	public static ImageDescriptor getImageDescriptor(String path) {
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
 	}
+	
+
+	
+
 }

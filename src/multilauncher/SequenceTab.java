@@ -49,8 +49,8 @@ public class SequenceTab extends AbstractLaunchConfigurationTab {
 	public void initializeFrom(ILaunchConfiguration configuration) {
 		try {
 			//TODO: create UI for item reordering 
-			Dictionary<String, ILaunchConfiguration> allValidConfigurations = MultiLaunch.getValidConfigurations(configuration);
-			Collection<ILaunchConfiguration> configurationsToRun = MultiLaunch.getConfigurationsToRun(configuration);
+			Dictionary<String, ILaunchConfiguration> allValidConfigurations = MultiLaunchConfiguration.getPossibleReferences(configuration);
+			Collection<ILaunchConfiguration> configurationsToRun = MultiLaunchConfiguration.getReferences(configuration);
 			//A list of configurations shown to user
 			ArrayList<String> ordered = new ArrayList<String>(allValidConfigurations.size());
 			//Configurations to check
