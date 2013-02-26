@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Dictionary;
+import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -49,7 +49,7 @@ public class SequenceTab extends AbstractLaunchConfigurationTab {
 	public void initializeFrom(ILaunchConfiguration configuration) {
 		try {
 			//TODO: create UI for item reordering 
-			Dictionary<String, ILaunchConfiguration> allValidConfigurations = MultiLaunchConfiguration.getPossibleReferences(configuration);
+			Map<String, ILaunchConfiguration> allValidConfigurations = MultiLaunchConfiguration.getPossibleReferences(configuration);
 			Collection<ILaunchConfiguration> configurationsToRun = MultiLaunchConfiguration.getReferences(configuration);
 			//A list of configurations shown to user
 			ArrayList<String> ordered = new ArrayList<String>(allValidConfigurations.size());
@@ -62,7 +62,7 @@ public class SequenceTab extends AbstractLaunchConfigurationTab {
 				allValidConfigurations.remove(toRun.getName());
 			}
 			//Then others sorted by name
-			ArrayList<String> unused = Collections.list(allValidConfigurations.keys());
+			ArrayList<String> unused = new ArrayList<String>(allValidConfigurations.keySet());
 			Collections.sort(unused);
 			ordered.addAll(unused);
 			_launchesViewer.setInput(ordered);

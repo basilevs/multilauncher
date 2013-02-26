@@ -3,10 +3,9 @@ package multilauncher;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Dictionary;
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.runtime.CoreException;
@@ -41,7 +40,7 @@ public class MultiLaunchConfiguration {
 	 * @return collection of valid references 
 	 * @throws CoreException
 	 */
-	public static Dictionary<String, ILaunchConfiguration> getPossibleReferences(ILaunchConfiguration current) throws CoreException
+	public static Map<String, ILaunchConfiguration> getPossibleReferences(ILaunchConfiguration current) throws CoreException
 	{
 		//TODO: consider another key to persist configuration association on rename
 		//TODO: deal with raw types
@@ -77,7 +76,7 @@ public class MultiLaunchConfiguration {
 		//WARN: configuration selection is lost on rename
 		Collection<String> sequence = getReferencesNames(current);
 		ArrayList<ILaunchConfiguration> rv = new ArrayList<ILaunchConfiguration>(sequence.size());
-		Dictionary<String, ILaunchConfiguration> configurations = getPossibleReferences(current);
+		Map<String, ILaunchConfiguration> configurations = getPossibleReferences(current);
 		for (String name: sequence) {
 			ILaunchConfiguration configuration = configurations.get(name);
 			if (configuration==null) {
@@ -89,8 +88,8 @@ public class MultiLaunchConfiguration {
 		return rv;
 	}
 	
-	public static Dictionary<String, ILaunchConfiguration> getAll() throws CoreException {
-		Dictionary<String, ILaunchConfiguration> rv = new Hashtable<String, ILaunchConfiguration>();
+	public static Map<String, ILaunchConfiguration> getAll() throws CoreException {
+		Map<String, ILaunchConfiguration> rv = new Hashtable<String, ILaunchConfiguration>();
 		ILaunchConfiguration[] configurations = MultiLaunchConfiguration.getLaunchManager().getLaunchConfigurations();
 		for (ILaunchConfiguration iLaunchConfiguration : configurations) {
 			//TODO: ensure that id comparison is enough to select configurations of our type
@@ -103,13 +102,12 @@ public class MultiLaunchConfiguration {
 
 	//TODO: consider replacing with direct iteration
 	public static void scanAll(Action action) throws CoreException {
-		Dictionary<String, ILaunchConfiguration> ourConfigurations = MultiLaunchConfiguration.getAll();
-		Enumeration<ILaunchConfiguration> enumeration = ourConfigurations.elements();
+		Map<String, ILaunchConfiguration> ourConfigurations = MultiLaunchConfiguration.getAll();
+		Collection<ILaunchConfiguration> enumeration = ourConfigurations.values();
 		scan(action, enumeration);
 	}
-	public static void scan(Action action, Enumeration<ILaunchConfiguration> enumeration) throws CoreException {
-		while (enumeration.hasMoreElements()) {
-			ILaunchConfiguration configuration = enumeration.nextElement();
+	public static void scan(Action action, Collection<ILaunchConfiguration> enumeration) throws CoreException {
+		for (ILaunchConfiguration configuration: enumeration) {
 			action.act(configuration);
 		}
 	}
