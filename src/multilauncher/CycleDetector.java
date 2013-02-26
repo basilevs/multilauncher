@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Stack;
 
 import multilauncher.DepthFirstSearch.VertexListener;
+import multilauncher.Graph.Vertex;
 
 public class CycleDetector {
 	/**
@@ -16,40 +17,66 @@ public class CycleDetector {
 	{
 		VertexListener<T> callback = new VertexListener<T>() {
 			private final ArrayList<Integer> _lowLink =  new ArrayList<Integer>();
-			private final Stack<Integer> _stack = new Stack<Integer>();
-			private int _visitIndex = 0;
-			public <V> void expandArray(Graph<T>.Vertex vertex, ArrayList<V> array, V value) {
+			private final Stack<Graph<T>.Vertex> _stack = new Stack<Graph<T>.Vertex>();
+			private <V> void expandArray(Graph<T>.Vertex vertex, ArrayList<V> array, V value) {
 				if (array.size() <= vertex.getId())
 					array.addAll(Collections.nCopies(vertex.getId() - array.size() + 1, value));
 			}
-			public void expandFlagArray(Graph<T>.Vertex vertex) {
+			private void expandFlagArray(Graph<T>.Vertex vertex) {
 				expandArray(vertex, hasAccess, false);
 				expandArray(vertex, _lowLink, Integer.MAX_VALUE);
 			}
+			private int getLowLink(Graph<T>.Vertex vertex) {
+				return _lowLink.get(vertex.getId());
+			}
+			private void setLowLink(Graph<T>.Vertex vertex, int index) {
+				_lowLink.set(vertex.getId(), Math.min(getLowLink(vertex), index));
+			}
 			@Override
-			public void verticeVisited(Graph<T>.Vertex from, Graph<T>.Vertex to, boolean firstTime) {
-				//If referenced object is accessible, parent is also accessible.
-				//If referenced object is already visited, this edge is part of the cycle.
+			public void verticeVisited(Graph<T>.Vertex from, Graph<T>.Vertex to, boolean firstTime, int visitIndex) {
 				expandFlagArray(to);
 				if (firstTime) {
-					assert(_lowLink.get(to.getId()) == Integer.MAX_VALUE);
-					_lowLink.set(to.getId(), _visitIndex);
-					_lowLink.set(from.getId(), Math.min(_lowLink.get(from.getId()), _visitIndex));
-					_visitIndex++;
-				}
-				if (_lowLink.get(from.getId()) > _lowLink.get(to.getId())) {
-					hasAccess.set(to.getId(), true); //cycle detected
+					assert(getLowLink(to) == Integer.MAX_VALUE);
+					setLowLink(to, visitIndex);
+					_stack.push(to);
+				} else {
+					if (_stack.contains(to)) {
+						setLowLink(from, visitIndex); //cycle detected
+					}
 				}
 				if (hasAccess.get(to.getId())) {
 					hasAccess.set(from.getId(), true); 
 				}
-			}			
+			}
 			@Override
-			public void verticeLeft(Graph<T>.Vertex from, Graph<T>.Vertex to) {
-				//If referenced object is accessible, parent is also accessible.
+			public void verticeLeft(Graph<T>.Vertex from, Graph<T>.Vertex to, int visitIndex) {
+				setLowLink(to,  getLowLink(from));
+				
+				if (visitIndex ==  getLowLink(from)) {
+					ArrayList<Graph<T>.Vertex> strongComponent = new ArrayList<Graph<T>.Vertex>();
+					while(_stack.size() > 0) {
+						Graph<T>.Vertex cycled = _stack.pop();
+						strongComponent.add(cycled); 
+						if (cycled == from)
+							break;
+					}
+					//marking whole cycle as bad, leaving single nodes as is
+					if (strongComponent.size() > 1) {
+						for (Graph<T>.Vertex vertex: strongComponent) {
+							hasAccess.set(vertex.getId(), true); 
+						}
+					}
+				}
 				if (hasAccess.get(from.getId())) {
 					hasAccess.set(to.getId(), true);
 				}
+			}
+			@Override
+			public void newTreeStarted(Graph<T>.Vertex from, int nodeIndex) {
+				expandFlagArray(from);
+				setLowLink(from, nodeIndex);
+				_stack.clear();
+				_stack.add(from);
 			}
 		};
 		DepthFirstSearch<T> dfs = new DepthFirstSearch<T>(graph, callback);

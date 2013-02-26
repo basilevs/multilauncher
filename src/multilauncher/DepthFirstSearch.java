@@ -6,13 +6,16 @@ import java.util.Iterator;
 
 public class DepthFirstSearch<T> {
 	public interface VertexListener<T> {		
+		void newTreeStarted(Graph<T>.Vertex from, int nodeIndex);
 		/**
 		 * Called when DFS descends to a vertex.
-		 * @param vertex - lower vertex 
+		 * @param to - lower vertex 
+		 * @param from - higher vertex
+		 * @param firstTime - true if to is unvisited
+		 * @param nodeIndex - index of to in DFS sequence  
 		 */
-		void newTreeStarted(Graph<T>.Vertex from);
-		void verticeVisited(Graph<T>.Vertex from,  Graph<T>.Vertex to, boolean firstTime);
-		void verticeLeft(Graph<T>.Vertex from, Graph<T>.Vertex to);
+		void verticeVisited(Graph<T>.Vertex from,  Graph<T>.Vertex to, boolean firstTime, int nodeIndex);
+		void verticeLeft(Graph<T>.Vertex from, Graph<T>.Vertex to, int nodeIndex);
 	}
 
 	private int _nextVisitIndex = 0;
@@ -28,9 +31,11 @@ public class DepthFirstSearch<T> {
 	public void depthFirstSearch() {
 		reset();
 		for (int i = 0; i < _graph.getVerticeCount(); ++i) {
-			if (_visitOrder.size() > i &&  _visitOrder.get(i) != -1)
-				continue;
-			depthFirstSearch(_graph.getVertex(i));
+			Graph<T>.Vertex vertex = _graph.getVertex(i);
+			if (markVisit(vertex)) {
+				_callback.newTreeStarted(vertex, _visitOrder.get(vertex.getId()));
+				depthFirstSearch(_graph.getVertex(i));
+			}
 		}
 	}
 
@@ -55,11 +60,11 @@ public class DepthFirstSearch<T> {
 		while(iterator.hasNext()) {
 			Graph<T>.Vertex vertex = iterator.next();
 			boolean first = markVisit(vertex);
-			_callback.verticeVisited(start, vertex, first);
+			_callback.verticeVisited(start, vertex, first, _visitOrder.get(vertex.getId()));
 			if (first) {
 				if (!depthFirstSearch(vertex))
 					return false;
-				_callback.verticeLeft(vertex, start);
+				_callback.verticeLeft(vertex, start, _visitOrder.get(start.getId()));
 			}				
 		}
 		return true;
