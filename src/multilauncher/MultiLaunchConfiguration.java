@@ -80,8 +80,11 @@ public class MultiLaunchConfiguration {
 		Dictionary<String, ILaunchConfiguration> configurations = getPossibleReferences(current);
 		for (String name: sequence) {
 			ILaunchConfiguration configuration = configurations.get(name);
-			if (configuration!=null)
-				rv.add(configuration);
+			if (configuration==null) {
+				DebugPlugin.logMessage("A reference to invalid configuration " + name + " detected", null);
+				continue;
+			}
+			rv.add(configuration);
 		}
 		return rv;
 	}
@@ -98,6 +101,7 @@ public class MultiLaunchConfiguration {
 		return rv;
 	}
 
+	//TODO: consider replacing with direct iteration
 	public static void scanAll(Action action) throws CoreException {
 		Dictionary<String, ILaunchConfiguration> ourConfigurations = MultiLaunchConfiguration.getAll();
 		Enumeration<ILaunchConfiguration> enumeration = ourConfigurations.elements();
