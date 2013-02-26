@@ -26,6 +26,11 @@ public class Activator extends AbstractUIPlugin {
 	// The shared instance
 	private static Activator plugin;
 	
+	/**
+	 * Watcher for deletions and renames.
+	 * References to renamed configurations are persisted.
+	 * References to deleted configurations are cleaned out. 
+	 */
 	final ILaunchConfigurationListener _configurationListener = new ILaunchConfigurationListener() {
 		
 		public void updateConfiguration(ILaunchConfiguration configuration, List<String> sequence) throws CoreException {
@@ -49,6 +54,7 @@ public class Activator extends AbstractUIPlugin {
 								if (name.equals(movedFrom.getName()))
 									name = movedTo.getName();
 								newSequence.add(name);
+								modified = true;
 							}
 							if (modified)
 								updateConfiguration(configuration, newSequence);
