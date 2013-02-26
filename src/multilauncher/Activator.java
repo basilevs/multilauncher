@@ -44,7 +44,7 @@ public class Activator extends AbstractUIPlugin {
 					List<String> sequence = MultiLaunchConfiguration.getReferencesNames(configuration);
 					// TODO: consider smarter in-place replace
 					List<String> newSequence = new ArrayList<String>(sequence.size());
-					Boolean modified = false;
+					boolean modified = false;
 					for (String name : sequence) {
 						if (name.equals(movedFrom.getName()))
 							name = movedTo.getName();

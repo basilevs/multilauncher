@@ -3,7 +3,7 @@ package multilauncher;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,9 +17,6 @@ public class MultiLaunchConfiguration {
 	public static boolean isMultiLaunchConfiguration(ILaunchConfiguration configuration) throws CoreException {
 		return configuration.getType().getIdentifier().equals("Multilauncher.MultiLaunch");
 	}
-	static interface Action {
-		void act(ILaunchConfiguration configuration)  throws CoreException;
-	}
 	public static List<String> getReferencesNames(ILaunchConfiguration configuration) throws CoreException {
 		assert(isMultiLaunchConfiguration(configuration));
 		@SuppressWarnings("rawtypes")
@@ -31,7 +28,6 @@ public class MultiLaunchConfiguration {
 		return rv;
 		
 	}
-	//
 	
 	/**
 	 * All configurations that can be referenced by current
@@ -45,7 +41,7 @@ public class MultiLaunchConfiguration {
 		//TODO: consider another key to persist configuration association on rename
 		//TODO: deal with raw types
 		ILaunchConfiguration[] configurations = getLaunchManager().getLaunchConfigurations();
-		Hashtable<String, ILaunchConfiguration> rv = new Hashtable<String, ILaunchConfiguration>(configurations.length);
+		HashMap<String, ILaunchConfiguration> rv = new HashMap<String, ILaunchConfiguration>(configurations.length);
 		@SuppressWarnings("rawtypes")
 		Set requiredModes = current.getModes(); // Actually just run and debug
 		for (ILaunchConfiguration iLaunchConfiguration : configurations) {				
@@ -89,7 +85,7 @@ public class MultiLaunchConfiguration {
 	}
 	
 	public static Map<String, ILaunchConfiguration> getAll() throws CoreException {
-		Map<String, ILaunchConfiguration> rv = new Hashtable<String, ILaunchConfiguration>();
+		Map<String, ILaunchConfiguration> rv = new HashMap<String, ILaunchConfiguration>();
 		ILaunchConfiguration[] configurations = MultiLaunchConfiguration.getLaunchManager().getLaunchConfigurations();
 		for (ILaunchConfiguration iLaunchConfiguration : configurations) {
 			//TODO: ensure that id comparison is enough to select configurations of our type
@@ -99,16 +95,16 @@ public class MultiLaunchConfiguration {
 		}
 		return rv;
 	}
-
-	//TODO: consider replacing with direct iteration
-	public static void scanAll(Action action) throws CoreException {
-		Map<String, ILaunchConfiguration> ourConfigurations = MultiLaunchConfiguration.getAll();
-		Collection<ILaunchConfiguration> enumeration = ourConfigurations.values();
-		scan(action, enumeration);
-	}
-	public static void scan(Action action, Collection<ILaunchConfiguration> enumeration) throws CoreException {
-		for (ILaunchConfiguration configuration: enumeration) {
-			action.act(configuration);
+	
+	public static void detectCycles(ILaunchConfiguration start,  Map<String, ILaunchConfiguration> cycled, Map<String, ILaunchConfiguration> all) throws CoreException {
+		cycled.put(start.getName(), start);
+		for (String referenceName: getReferencesNames(start)) {
+			if (cycled.get(referenceName) != null) {
+				
+			}
+			ILaunchConfiguration configuration = all.get(referenceName);
+			assert(isMultiLaunchConfiguration(configuration));
+			
 		}
 	}
 
