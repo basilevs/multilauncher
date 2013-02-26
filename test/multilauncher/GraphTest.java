@@ -60,7 +60,7 @@ public class GraphTest {
 		//
 		//
 		StringGraph rv = new StringGraph();
-		rv. new StringVertex("A", new String[]{"B", "C", "D", "G"});
+		rv. new StringVertex("A", new String[]{"B", "C", "D"});
 		rv. new StringVertex("B", new String[]{});
 		rv. new StringVertex("C", new String[]{"E"});
 		rv. new StringVertex("D", new String[]{"E", "G"});
@@ -74,17 +74,32 @@ public class GraphTest {
 		assert(graph.getVerticeCount()==6);
 	}
 	@Test
+	public void testSimpleCycle() {
+		StringGraph graph= new StringGraph();
+		graph.new StringVertex("A", new String[]{"B"});
+		graph.new StringVertex("B", new String[]{"A"});
+		ArrayList<Boolean> hasAccess = new ArrayList<Boolean>();
+		CycleDetector.haveAccessToOrCycle(graph, hasAccess);
+		ensureChecked(graph, hasAccess, "AB", "");
+	}
+	@Test
 	public void testDFS() {	
 		class TestListener implements VertexListener<String> {
 			public int visitCount = 0;
 			@Override
-			public void verticeVisited(Vertex from, Vertex to, boolean firstTime) {
+			public void verticeVisited(Graph<String>.Vertex from, Graph<String>.Vertex to, boolean firstTime, int index) {
 				if (firstTime)
 					visitCount++;
 			}
 
 			@Override
-			public void verticeLeft(Vertex from, Vertex to) {
+			public void verticeLeft(Graph<String>.Vertex from, Graph<String>.Vertex to, int index) {
+			}
+
+			@Override
+			public void newTreeStarted(Graph<String>.Vertex from, int nodeIndex) {
+				// TODO Auto-generated method stub
+				
 			}
 		};
 		TestListener callback = new TestListener();
@@ -103,8 +118,8 @@ public class GraphTest {
 				unchecked.append(graph.getVertex(i).getPayload());
 			}
 		}
-		assertEquals(shouldBeChecked, checked);
-		assertEquals(shouldBeUnchecked, unchecked);
+		assertEquals(shouldBeChecked, checked.toString());
+		assertEquals(shouldBeUnchecked, unchecked.toString());
 	} 
 
 	@Test
@@ -113,7 +128,8 @@ public class GraphTest {
 		ArrayList<Boolean> hasAccess = new ArrayList<Boolean>();
 		graph.mark("A", hasAccess);
 		CycleDetector.haveAccessToOrCycle(graph, hasAccess);
-		ensureChecked(graph, hasAccess, "AGD", "BCE");
+		ensureChecked(graph, hasAccess, "ADG", "BCE");
 	}
+	
 
 }
