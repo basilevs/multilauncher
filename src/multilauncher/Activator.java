@@ -80,7 +80,7 @@ public class Activator extends AbstractUIPlugin {
 					public void act(ILaunchConfiguration cleanupCandidate)  throws CoreException {
 						List<String> newSequence = MultiLaunchConfiguration.getReferencesNames(cleanupCandidate);
 						if (newSequence.remove(configuration.getName()))
-							updateConfiguration(configuration, newSequence);
+							updateConfiguration(cleanupCandidate, newSequence);
 					}
 				});
 			} catch (CoreException e)
