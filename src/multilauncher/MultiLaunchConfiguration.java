@@ -25,7 +25,7 @@ public class MultiLaunchConfiguration {
 		assert(isMultiLaunchConfiguration(configuration));
 		@SuppressWarnings("rawtypes")
 		List sequence = configuration.getAttribute(MultiLaunch.sequenceFieldName, Collections.emptyList());
-		ArrayList<String> rv = new ArrayList<>(sequence.size());
+		ArrayList<String> rv = new ArrayList<String>(sequence.size());
 		for (Object item : sequence) {
 			rv.add(item.toString());
 		}
@@ -46,7 +46,7 @@ public class MultiLaunchConfiguration {
 		//TODO: consider another key to persist configuration association on rename
 		//TODO: deal with raw types
 		ILaunchConfiguration[] configurations = getLaunchManager().getLaunchConfigurations();
-		Hashtable<String, ILaunchConfiguration> rv = new Hashtable<>(configurations.length);
+		Hashtable<String, ILaunchConfiguration> rv = new Hashtable<String, ILaunchConfiguration>(configurations.length);
 		@SuppressWarnings("rawtypes")
 		Set requiredModes = current.getModes(); // Actually just run and debug
 		for (ILaunchConfiguration iLaunchConfiguration : configurations) {				
