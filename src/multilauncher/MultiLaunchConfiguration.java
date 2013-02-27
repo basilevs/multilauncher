@@ -57,6 +57,7 @@ public class MultiLaunchConfiguration {
 			//WARN: relies on unique configuration naming (provided by IDE)
 			rv.put(iLaunchConfiguration.getName(), iLaunchConfiguration);
 		}
+		//Cycle prevention. Existing cycles and those that can be created by a link to current configuration are eliminated.
 		ConfGraph graph = new ConfGraph(rv.values());
 		ArrayList<Boolean> accessors = new ArrayList<Boolean>(Collections.nCopies(graph.getVerticeCount(), false));
 		accessors.set(graph.getVertexByName(current.getName()).getId(), true);

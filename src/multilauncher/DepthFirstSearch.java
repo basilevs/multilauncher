@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 
+//TODO: remove support for Graph mutability it is unneeded here
 public class DepthFirstSearch<T> {
 	public interface VertexListener<T> {		
 		/**
