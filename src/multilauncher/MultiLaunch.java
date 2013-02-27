@@ -14,7 +14,7 @@ public class MultiLaunch implements ILaunchConfigurationDelegate {
 			ILaunch launch, IProgressMonitor monitor) throws CoreException {
 		//Children have their own launch object. This one is not needed.
 		MultiLaunchConfiguration.getLaunchManager().removeLaunch(launch); 
-		for (ILaunchConfiguration toRun : MultiLaunchConfiguration.getReferences(configuration)) {
+		for (ILaunchConfiguration toRun : MultiLaunchConfiguration.getReferences(configuration, null)) {
 			//TODO: progress might be shown incorrectly
 			//TODO: we should probably process ILaunch return value somehow
 			toRun.launch(mode, monitor);

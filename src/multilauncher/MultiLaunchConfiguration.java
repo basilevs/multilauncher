@@ -33,7 +33,6 @@ public class MultiLaunchConfiguration {
 	
 	/**
 	 * All configurations that can be referenced by current
-	 * Complexity: n
 	 * @param current - configuration of type MultiLaunch to analyze
 	 * @return collection of valid references 
 	 * @throws CoreException
@@ -61,7 +60,8 @@ public class MultiLaunchConfiguration {
 		graph.accesors.set(graph.getVertexByName(current.getName()), true); 
 		//Detect configurations with access to current or those with cycles
 		//Note, that for cases when current dependency graph is correct,
-		//a much simpler algorithm can be used (cycle detection is not required - only access to current configuration could be cheked) 
+		//a much simpler algorithm can be used (cycle detection is not required - only access to current configuration could be checked)
+		//It is due to this protection sequence don't even need to be checked on save 
 		CycleDetector.haveAccessToOrCycle(graph, graph.accesors);
 		//Filtering out those configurations that has access (or are in cycle)
 		for(Vertex vertex: graph.getVertices())
@@ -103,14 +103,15 @@ public class MultiLaunchConfiguration {
 	 * @return collection of active references
 	 * @throws CoreException
 	 */
-	public static Collection<ILaunchConfiguration> getReferences(ILaunchConfiguration current) throws CoreException
+	public static Collection<ILaunchConfiguration> getReferences(ILaunchConfiguration current, Map<String, ILaunchConfiguration> allPossibleConfigurations) throws CoreException
 	{
 		//WARN: configuration selection is lost on rename
 		Collection<String> sequence = getReferencesNames(current);
 		ArrayList<ILaunchConfiguration> rv = new ArrayList<ILaunchConfiguration>(sequence.size());
-		Map<String, ILaunchConfiguration> configurations = getPossibleReferences(current);
+		if (allPossibleConfigurations == null)
+			allPossibleConfigurations = getPossibleReferences(current);
 		for (String name: sequence) {
-			ILaunchConfiguration configuration = configurations.get(name);
+			ILaunchConfiguration configuration = allPossibleConfigurations.get(name);
 			if (configuration==null) {
 				DebugPlugin.logMessage("A reference to invalid configuration " + name + " detected", null);
 				continue;
@@ -132,18 +133,6 @@ public class MultiLaunchConfiguration {
 		return rv;
 	}
 	
-	public static void detectCycles(ILaunchConfiguration start,  Map<String, ILaunchConfiguration> cycled, Map<String, ILaunchConfiguration> all) throws CoreException {
-		cycled.put(start.getName(), start);
-		for (String referenceName: getReferencesNames(start)) {
-			if (cycled.get(referenceName) != null) {
-				
-			}
-			ILaunchConfiguration configuration = all.get(referenceName);
-			assert(isMultiLaunchConfiguration(configuration));
-			
-		}
-	}
-
 	public static ILaunchManager getLaunchManager() {
 		return DebugPlugin.getDefault().getLaunchManager();
 	}

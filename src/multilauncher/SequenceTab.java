@@ -50,7 +50,7 @@ public class SequenceTab extends AbstractLaunchConfigurationTab {
 		try {
 			//TODO: create UI for item reordering 
 			Map<String, ILaunchConfiguration> allValidConfigurations = MultiLaunchConfiguration.getPossibleReferences(configuration);
-			Collection<ILaunchConfiguration> configurationsToRun = MultiLaunchConfiguration.getReferences(configuration);
+			Collection<ILaunchConfiguration> configurationsToRun = MultiLaunchConfiguration.getReferences(configuration, allValidConfigurations);
 			//A list of configurations shown to user
 			ArrayList<String> ordered = new ArrayList<String>(allValidConfigurations.size());
 			//Configurations to check
@@ -76,6 +76,7 @@ public class SequenceTab extends AbstractLaunchConfigurationTab {
 	@Override
 	public void performApply(ILaunchConfigurationWorkingCopy configuration) {
 		Object[] checked = _launchesViewer.getCheckedElements();
+		//We don't do checks for sequence elements validity here. Checks before use have more value.  
 		configuration.setAttribute(MultiLaunch.sequenceFieldName, Arrays.asList(checked));		
 	}
 

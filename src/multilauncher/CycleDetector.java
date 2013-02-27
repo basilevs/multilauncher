@@ -37,6 +37,7 @@ public class CycleDetector {
 					if (from != null && _stack.contains(to))  //cycle detected
 						setLowLink(from, getLowLink(to)); 
 				}
+				//Access poisoning goes up through DFS stack
 				if (from != null) {
 					if (hasAccess.get(to)) {
 						hasAccess.set(from, true);
@@ -65,6 +66,7 @@ public class CycleDetector {
 				}
 				if (to != null) {
 					setLowLink(to,  getLowLink(from));
+					//Access poisoning goes up through DFS stack
 					if (hasAccess.get(from)) {
 						hasAccess.set(to, true);
 					}

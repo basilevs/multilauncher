@@ -18,6 +18,7 @@ public class Graph {
 	/**
 	 * Typesafe access to vertex payload
 	 * Each instance of Facet manipulates its own data.
+	 * Different algorithms can have different facets and act on graph independently (if they don't add edges or vertices)
 	 */
 	class Facet<T> {
 		private int _id;
