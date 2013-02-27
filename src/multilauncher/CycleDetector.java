@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.Stack;
 
 import multilauncher.DepthFirstSearch.VertexListener;
-import multilauncher.Graph.Vertex;
 
 public class CycleDetector {
 	/**
@@ -38,19 +37,19 @@ public class CycleDetector {
 				if (firstTime) {
 					assert(getLowLink(to) == Integer.MAX_VALUE);
 					setLowLink(to, visitIndex);
+					assert(from != null || _stack.size() == 0);
 					_stack.push(to);
 				} else {
-					if (_stack.contains(to)) {
-						setLowLink(from, visitIndex); //cycle detected
+					if (from != null && _stack.contains(to)) {
+						setLowLink(from, getLowLink(to)); //cycle detected
 					}
 				}
-				if (hasAccess.get(to.getId())) {
+				if (from != null && hasAccess.get(to.getId())) {
 					hasAccess.set(from.getId(), true); 
 				}
 			}
 			@Override
 			public void verticeLeft(Graph<T>.Vertex from, Graph<T>.Vertex to, int visitIndex) {
-				setLowLink(to,  getLowLink(from));
 				
 				if (visitIndex ==  getLowLink(from)) {
 					ArrayList<Graph<T>.Vertex> strongComponent = new ArrayList<Graph<T>.Vertex>();
@@ -67,16 +66,12 @@ public class CycleDetector {
 						}
 					}
 				}
-				if (hasAccess.get(from.getId())) {
-					hasAccess.set(to.getId(), true);
+				if (to != null) {
+					setLowLink(to,  getLowLink(from));
+					if (hasAccess.get(from.getId())) {
+						hasAccess.set(to.getId(), true);
+					}
 				}
-			}
-			@Override
-			public void newTreeStarted(Graph<T>.Vertex from, int nodeIndex) {
-				expandFlagArray(from);
-				setLowLink(from, nodeIndex);
-				_stack.clear();
-				_stack.add(from);
 			}
 		};
 		DepthFirstSearch<T> dfs = new DepthFirstSearch<T>(graph, callback);
