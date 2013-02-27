@@ -83,6 +83,18 @@ public class GraphTest {
 		ensureChecked(graph, hasAccess, "AB", "");
 	}
 	@Test
+	public void testTriCycle() {
+		StringGraph graph= new StringGraph();
+		graph.new StringVertex("A", new String[]{"B"});
+		graph.new StringVertex("B", new String[]{"C"});
+		graph.new StringVertex("C", new String[]{});
+		graph.build();
+		ArrayList<Boolean> hasAccess = new ArrayList<Boolean>();
+		graph.mark("C", hasAccess);
+		CycleDetector.haveAccessToOrCycle(graph, hasAccess);
+		ensureChecked(graph, hasAccess, "ABC", "");
+	}
+	@Test
 	public void testDFS() {	
 		class TestListener implements VertexListener<String> {
 			public int visitCount = 0;

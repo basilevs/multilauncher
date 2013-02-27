@@ -1,12 +1,16 @@
 package multilauncher;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import multilauncher.Graph.Vertex;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -45,19 +49,44 @@ public class MultiLaunchConfiguration {
 		@SuppressWarnings("rawtypes")
 		Set requiredModes = current.getModes(); // Actually just run and debug
 		for (ILaunchConfiguration iLaunchConfiguration : configurations) {				
-			//TODO: Prevent configuration cycles (deep detection)
-			if (iLaunchConfiguration.contentsEqual(current))
-				continue;
 			@SuppressWarnings("rawtypes")
 			Set modes= iLaunchConfiguration.getModes();
 			if (!modes.containsAll(requiredModes))
 				continue;
-			
 			//TODO: More filters are probably needed here
 			//WARN: relies on unique configuration naming (provided by IDE)
 			rv.put(iLaunchConfiguration.getName(), iLaunchConfiguration);
 		}
+		ConfGraph graph = new ConfGraph(rv.values());
+		ArrayList<Boolean> accessors = new ArrayList<Boolean>(Collections.nCopies(graph.getVerticeCount(), false));
+		accessors.set(graph.getVertexByName(current.getName()).getId(), true);
+		CycleDetector.haveAccessToOrCycle(graph, accessors);
+		for(int i = 0; i <accessors.size(); i++)
+			if (accessors.get(i))
+				rv.remove(graph.getVertex(i).getPayload().getName());
 		return rv;
+	}
+	
+	private static class ConfGraph extends Graph<ILaunchConfiguration> {
+		Map<String, Graph<ILaunchConfiguration>.Vertex> _vertices = new HashMap<String, Vertex>();			
+		public ConfGraph(Iterable<ILaunchConfiguration> configurations) throws CoreException {
+			for (ILaunchConfiguration configuration: configurations) {
+				if (!isMultiLaunchConfiguration(configuration))
+					continue;
+				_vertices.put(configuration.getName(), new Vertex(configuration));
+			}
+			for (Vertex vertex: _vertices.values()) {
+				for(String name: getReferencesNames(vertex.getPayload())) {
+					Vertex neighbor = _vertices.get(name);
+					if (neighbor==null)
+						continue;
+					vertex.addEdge(neighbor);
+				}
+			}			
+		}
+		public Vertex getVertexByName(String name) {
+			return _vertices.get(name);
+		}
 	}
 	
 	
