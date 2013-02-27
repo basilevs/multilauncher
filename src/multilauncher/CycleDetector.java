@@ -34,19 +34,21 @@ public class CycleDetector {
 					assert(from != null || _stack.size() == 0);
 					_stack.push(to);
 				} else {
-					if (from != null) {
-						setLowLink(from, getLowLink(to));
-					}
+					if (from != null && _stack.contains(to))  //cycle detected
+						setLowLink(from, getLowLink(to)); 
 				}
-				if (from != null && hasAccess.get(to)) {
-					hasAccess.set(from, true); 
+				if (from != null) {
+					if (hasAccess.get(to)) {
+						hasAccess.set(from, true);
+					}
 				}
 			}
 			@Override
 			public void verticeLeft(Vertex from, Vertex to, int visitIndex) {
 				assert(from != null);
 				assert(visitIndex >= 0);
-				if (visitIndex ==  getLowLink(from)) {
+				if (visitIndex ==  getLowLink(from)) { //Root of strongly connected component found
+					//TODO: is a separate container required here?
 					ArrayList<Vertex> strongComponent = new ArrayList<Vertex>();
 					while(_stack.size() > 0) {
 						Vertex cycled = _stack.pop();
@@ -54,7 +56,7 @@ public class CycleDetector {
 						if (cycled == from)
 							break;
 					}
-					//marking whole cycle as bad, leaving single nodes as is
+					//marking whole component as bad, leaving single nodes as is
 					if (strongComponent.size() > 1) {
 						for (Vertex vertex: strongComponent) {
 							hasAccess.set(vertex, true); 
