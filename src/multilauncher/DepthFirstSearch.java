@@ -6,15 +6,20 @@ import java.util.Iterator;
 
 public class DepthFirstSearch<T> {
 	public interface VertexListener<T> {		
-		void newTreeStarted(Graph<T>.Vertex from, int nodeIndex);
 		/**
 		 * Called when DFS descends to a vertex.
 		 * @param to - lower vertex 
-		 * @param from - higher vertex
+		 * @param from - higher vertex, can be null for tree root
 		 * @param firstTime - true if to is unvisited
 		 * @param nodeIndex - index of to in DFS sequence  
 		 */
 		void verticeVisited(Graph<T>.Vertex from,  Graph<T>.Vertex to, boolean firstTime, int nodeIndex);
+		/**
+		 * Called when DFS leaves a vertex (after processing all of its edges)
+		 * @param from - vertex to be left 
+		 * @param to - parent vertex, can be null for tree root
+		 * @param nodeIndex - DFS index of vertex to be left 
+		 */
 		void verticeLeft(Graph<T>.Vertex from, Graph<T>.Vertex to, int nodeIndex);
 	}
 
@@ -33,8 +38,10 @@ public class DepthFirstSearch<T> {
 		for (int i = 0; i < _graph.getVerticeCount(); ++i) {
 			Graph<T>.Vertex vertex = _graph.getVertex(i);
 			if (markVisit(vertex)) {
-				_callback.newTreeStarted(vertex, _visitOrder.get(vertex.getId()));
-				depthFirstSearch(_graph.getVertex(i));
+				int visit = _visitOrder.get(vertex.getId());
+				_callback.verticeVisited(null, vertex, true, visit);
+				depthFirstSearch(vertex);
+				_callback.verticeLeft(vertex, null, visit);
 			}
 		}
 	}
@@ -64,7 +71,7 @@ public class DepthFirstSearch<T> {
 			if (first) {
 				if (!depthFirstSearch(vertex))
 					return false;
-				_callback.verticeLeft(vertex, start, _visitOrder.get(start.getId()));
+				_callback.verticeLeft(vertex, start, _visitOrder.get(vertex.getId()));
 			}				
 		}
 		return true;
