@@ -16,7 +16,7 @@ public class Graph<T> {
 		return rv;
 	} 
 	
-	public final class Vertex {
+	public class Vertex {
 		final int _id;
 		private final T _payload;
 		Collection<Vertex> _neighbors = new ArrayList<Vertex>();

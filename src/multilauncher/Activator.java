@@ -33,7 +33,6 @@ public class Activator extends AbstractUIPlugin {
 			assert (MultiLaunchConfiguration.isMultiLaunchConfiguration(configuration));
 			ILaunchConfigurationWorkingCopy workingCopy = configuration.getWorkingCopy();
 			workingCopy.setAttribute(MultiLaunch.sequenceFieldName, sequence);
-			// TODO: is it ok not to save parent?
 			workingCopy.doSave();
 		}
 
