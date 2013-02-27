@@ -93,6 +93,40 @@ public class GraphTest {
 		ensureChecked(graph, "ABC", "");
 	}
 	@Test
+	public void testMultiVisit() {
+		StringGraph graph= new StringGraph();
+		graph.addVertex("A", new String[]{"B"});
+		graph.addVertex("B", new String[]{});
+		graph.addVertex("C", new String[]{"B"});
+		graph.build();
+		graph.mark("C");
+		CycleDetector.haveAccessToOrCycle(graph, graph.hasAccess);
+		ensureChecked(graph, "C", "AB");
+	}
+	@Test
+	public void testTwoCycleMultiVisit() {
+		StringGraph graph= new StringGraph();
+		graph.addVertex("A", new String[]{"B"});
+		graph.addVertex("B", new String[]{"A", "C"});
+		graph.addVertex("C", new String[]{});
+		graph.addVertex("E", new String[]{"D"});
+		graph.addVertex("D", new String[]{"C", "E"});
+		graph.build();
+		CycleDetector.haveAccessToOrCycle(graph, graph.hasAccess);
+		ensureChecked(graph, "ABED", "C");
+	}
+	@Test
+	public void testCycleMultiVisit() {
+		StringGraph graph= new StringGraph();
+		graph.addVertex("A", new String[]{"B"});
+		graph.addVertex("B", new String[]{"A"});
+		graph.addVertex("C", new String[]{"A"});
+		graph.addVertex("E", new String[]{"A"});
+		graph.build();
+		CycleDetector.haveAccessToOrCycle(graph, graph.hasAccess);
+		ensureChecked(graph, "ABCE", "");
+	}
+	@Test
 	public void testDFS() {	
 		class TestListener implements VertexListener {
 			public int visitCount = 0;

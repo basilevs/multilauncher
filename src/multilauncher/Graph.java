@@ -17,7 +17,7 @@ public class Graph {
 	
 	/**
 	 * Typesafe access to vertex payload
-	 * Each instance of Facet gives access to a new kind of pocket in Vertex.
+	 * Each instance of Facet manipulates its own data.
 	 */
 	class Facet<T> {
 		private int _id;
@@ -39,6 +39,7 @@ public class Graph {
 			return t;
 		}
 		void set(Vertex vertex, T payload) {
+			//Extra boxing happens here. Our performance goes only so far for now.
 			assert(_id < _facets.size());
 			assert(_facets.get(_id) == this);
 			if (vertex._payload.size() <= _facets.size())
@@ -48,7 +49,7 @@ public class Graph {
 	}
 	
 	public class Vertex {
-		//Extra boxing happens here. Our performance goes only so far for now.
+		//int _id; was here but now is replaced by facets 
 		private ArrayList<Object> _payload = new ArrayList<Object>(); 
 		private	Collection<Vertex> _neighbors = new ArrayList<Vertex>();
 		public Vertex() {
