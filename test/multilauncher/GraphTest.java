@@ -2,48 +2,48 @@ package multilauncher;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import multilauncher.DepthFirstSearch.VertexListener;
+import multilauncher.Graph.Vertex;
 
 import org.junit.Test;
 
 public class GraphTest {
 
-	static class StringGraph extends Graph<String> {
-		private Map<String, StringVertex> _vertices = new HashMap<String, StringVertex>();
-
-		public class StringVertex
-		{
-			Graph<String>.Vertex _vertex;
-			String[] _neighbors;
-			public StringVertex(String name, String[] neighbors)
-			{
-				_neighbors = neighbors;
-				_vertex= new Vertex(name);
-				_vertices.put(name, this);
-			}
+	static class StringGraph extends Graph {
+		private Map<String, Vertex> _vertices = new HashMap<String, Vertex>();
+		private Facet<String> _name = new Facet<String>("");
+		private Facet<String[]> _edges= new Facet<String[]>(new String[]{});
+		public Facet<Boolean> hasAccess = new Facet<Boolean>(false);
+		
+		public Vertex addVertex(String name, String[] edges) {
+			 Vertex rv = new Vertex();
+			_name.set(rv, name);
+			_edges.set(rv, edges);
+			_vertices.put(name, rv);
+			return rv;
 		}
 		void build() {
-			for (StringVertex sv: _vertices.values()) {
-				for (String name: sv._neighbors) {
-					StringVertex cached  = _vertices.get(name);
+			for (Vertex sv: _vertices.values()) {
+				for (String name: _edges.get(sv)) {
+					Vertex cached  = _vertices.get(name);
 					assert(cached != null);
-					sv._vertex.addEdge(cached._vertex);
+					sv.addEdge(cached);
 				}
 			}
 		}
-		StringVertex getVertex(String name) {
-			return _vertices.get(name);
+		Vertex getVertex(String name) {
+			Vertex rv = _vertices.get(name);
+			assert(rv != null);
+			return rv;
 		}	
-		void mark(String name, ArrayList<Boolean> accessMap) {
-			int id = getVertex(name)._vertex.getId(); 
-			if (accessMap.size() < getVerticeCount())
-				accessMap.addAll(Collections.nCopies(id - accessMap.size() + 1, false));
-			accessMap.set(id, true);
+		void mark(String name) {
+			hasAccess.set(getVertex(name), true);
+		}
+		String getName(Vertex vertex) {
+			return _name.get(vertex);
 		}
 	}
 	
@@ -58,70 +58,68 @@ public class GraphTest {
 		//
 		//
 		StringGraph rv = new StringGraph();
-		rv. new StringVertex("A", new String[]{"B", "C", "D"});
-		rv. new StringVertex("B", new String[]{});
-		rv. new StringVertex("C", new String[]{"E"});
-		rv. new StringVertex("D", new String[]{"E", "G"});
-		rv. new StringVertex("E", new String[]{});		
-		rv. new StringVertex("G", new String[]{"A"});
+		rv.addVertex("A", new String[]{"B", "C", "D"});
+		rv.addVertex("B", new String[]{});
+		rv.addVertex("C", new String[]{"E"});
+		rv.addVertex("D", new String[]{"E", "G"});
+		rv.addVertex("E", new String[]{});		
+		rv.addVertex("G", new String[]{"A"});
 		rv.build();
 		return rv;
 	}
 	@Test
 	public void testCreate() {
 		StringGraph graph = create();
-		assert(graph.getVerticeCount()==6);
+		assert(graph.getVertices().size()==6);
 	}
 	@Test
 	public void testSimpleCycle() {
 		StringGraph graph= new StringGraph();
-		graph.new StringVertex("A", new String[]{"B"});
-		graph.new StringVertex("B", new String[]{"A"});
+		graph.addVertex("A", new String[]{"B"});
+		graph.addVertex("B", new String[]{"A"});
 		graph.build();
-		ArrayList<Boolean> hasAccess = new ArrayList<Boolean>();
-		CycleDetector.haveAccessToOrCycle(graph, hasAccess);
-		ensureChecked(graph, hasAccess, "AB", "");
+		CycleDetector.haveAccessToOrCycle(graph, graph.hasAccess);
+		ensureChecked(graph, "AB", "");
 	}
 	@Test
 	public void testTriCycle() {
 		StringGraph graph= new StringGraph();
-		graph.new StringVertex("A", new String[]{"B"});
-		graph.new StringVertex("B", new String[]{"C"});
-		graph.new StringVertex("C", new String[]{});
+		graph.addVertex("A", new String[]{"B"});
+		graph.addVertex("B", new String[]{"C"});
+		graph.addVertex("C", new String[]{});
 		graph.build();
-		ArrayList<Boolean> hasAccess = new ArrayList<Boolean>();
-		graph.mark("C", hasAccess);
-		CycleDetector.haveAccessToOrCycle(graph, hasAccess);
-		ensureChecked(graph, hasAccess, "ABC", "");
+		graph.mark("C");
+		CycleDetector.haveAccessToOrCycle(graph, graph.hasAccess);
+		ensureChecked(graph, "ABC", "");
 	}
 	@Test
 	public void testDFS() {	
-		class TestListener implements VertexListener<String> {
+		class TestListener implements VertexListener {
 			public int visitCount = 0;
 			@Override
-			public void verticeVisited(Graph<String>.Vertex from, Graph<String>.Vertex to, boolean firstTime, int index) {
+			public void verticeVisited(Vertex from, Vertex to, boolean firstTime, int index) {
 				if (firstTime)
 					visitCount++;
 			}
 
 			@Override
-			public void verticeLeft(Graph<String>.Vertex from, Graph<String>.Vertex to, int index) {
+			public void verticeLeft(Vertex from, Vertex to, int index) {
 			}
 		};
 		TestListener callback = new TestListener();
 		StringGraph graph = create();
-		DepthFirstSearch<String> dfs = new DepthFirstSearch<String>(graph, callback);
+		DepthFirstSearch dfs = new DepthFirstSearch(graph, callback);
 		dfs.depthFirstSearch();
-		assert(callback.visitCount == graph.getVerticeCount()); 
+		assertEquals(graph.getVertices().size(), callback.visitCount); 
 	}
-	static void ensureChecked(StringGraph graph, ArrayList<Boolean> checks, String shouldBeChecked, String shouldBeUnchecked) {
+	static void ensureChecked(StringGraph graph, String shouldBeChecked, String shouldBeUnchecked) {
 		StringBuffer checked = new StringBuffer();
 		StringBuffer unchecked = new StringBuffer();
-		for (int i = 0; i < checks.size(); ++i) {
-			if (checks.get(i)) {
-				checked.append(graph.getVertex(i).getPayload());
+		for (Vertex vertex: graph.getVertices()) {
+			if (graph.hasAccess.get(vertex)) {
+				checked.append(graph.getName(vertex));
 			} else {
-				unchecked.append(graph.getVertex(i).getPayload());
+				unchecked.append(graph.getName(vertex));
 			}
 		}
 		assertEquals(shouldBeChecked, checked.toString());
@@ -131,30 +129,28 @@ public class GraphTest {
 	@Test
 	public void testCycleCheck() {
 		StringGraph graph = create();
-		ArrayList<Boolean> hasAccess = new ArrayList<Boolean>();
-		graph.mark("A", hasAccess);
-		CycleDetector.haveAccessToOrCycle(graph, hasAccess);
-		ensureChecked(graph, hasAccess, "ADG", "BCE");
-		Collections.fill(hasAccess, false);
-		graph.mark("B", hasAccess);
-		CycleDetector.haveAccessToOrCycle(graph, hasAccess);
-		ensureChecked(graph, hasAccess, "ABDG", "CE");
-		Collections.fill(hasAccess, false);
-		graph.mark("E", hasAccess);
-		CycleDetector.haveAccessToOrCycle(graph, hasAccess);
-		ensureChecked(graph, hasAccess, "ACDEG", "B");
+		graph.mark("A");
+		CycleDetector.haveAccessToOrCycle(graph, graph.hasAccess);
+		ensureChecked(graph, "ADG", "BCE");
+		graph = create();
+		graph.mark("B");
+		CycleDetector.haveAccessToOrCycle(graph, graph.hasAccess);
+		ensureChecked(graph, "ABDG", "CE");
+		graph = create();
+		graph.mark("E");
+		CycleDetector.haveAccessToOrCycle(graph, graph.hasAccess);
+		ensureChecked(graph, "ACDEG", "B");
 	}
 	@Test
 	public void testUnconnected() {
 		StringGraph graph= new StringGraph();
-		graph.new StringVertex("A", new String[]{});
-		graph.new StringVertex("B", new String[]{});
-		graph.new StringVertex("C", new String[]{});
-		graph.new StringVertex("D", new String[]{});
-		ArrayList<Boolean> hasAccess = new ArrayList<Boolean>();
-		graph.mark("D", hasAccess);
-		CycleDetector.haveAccessToOrCycle(graph, hasAccess);
-		ensureChecked(graph, hasAccess, "D", "ABC");
+		graph.addVertex("A", new String[]{});
+		graph.addVertex("B", new String[]{});
+		graph.addVertex("C", new String[]{});
+		graph.addVertex("D", new String[]{});
+		graph.mark("D");
+		CycleDetector.haveAccessToOrCycle(graph, graph.hasAccess);
+		ensureChecked(graph, "D", "ABC");
 	}
 
 }

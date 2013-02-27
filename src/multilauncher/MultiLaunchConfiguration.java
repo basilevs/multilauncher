@@ -1,11 +1,9 @@
 package multilauncher;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,25 +57,33 @@ public class MultiLaunchConfiguration {
 		}
 		//Cycle prevention. Existing cycles and those that can be created by a link to current configuration are eliminated.
 		ConfGraph graph = new ConfGraph(rv.values());
-		ArrayList<Boolean> accessors = new ArrayList<Boolean>(Collections.nCopies(graph.getVerticeCount(), false));
-		accessors.set(graph.getVertexByName(current.getName()).getId(), true);
-		CycleDetector.haveAccessToOrCycle(graph, accessors);
-		for(int i = 0; i <accessors.size(); i++)
-			if (accessors.get(i))
-				rv.remove(graph.getVertex(i).getPayload().getName());
+		//Current configuration has access to itself
+		graph.accesors.set(graph.getVertexByName(current.getName()), true); 
+		//Detect configurations with access to current or those with cycles
+		//Note, that for cases when current dependency graph is correct,
+		//a much simpler algorithm can be used (cycle detection is not required - only access to current configuration could be cheked) 
+		CycleDetector.haveAccessToOrCycle(graph, graph.accesors);
+		//Filtering out those configurations that has access (or are in cycle)
+		for(Vertex vertex: graph.getVertices())
+			if (graph.accesors.get(vertex))
+				rv.remove(graph.configuration.get(vertex).getName());
 		return rv;
 	}
 	
-	private static class ConfGraph extends Graph<ILaunchConfiguration> {
-		Map<String, Graph<ILaunchConfiguration>.Vertex> _vertices = new HashMap<String, Vertex>();			
+	private static class ConfGraph extends Graph {
+		Map<String, Vertex> _vertices = new HashMap<String, Vertex>();
+		public final Facet<ILaunchConfiguration> configuration = new Facet<ILaunchConfiguration>(null);
+		public final Facet<Boolean> accesors = new Facet<Boolean>(false);
 		public ConfGraph(Iterable<ILaunchConfiguration> configurations) throws CoreException {
-			for (ILaunchConfiguration configuration: configurations) {
-				if (!isMultiLaunchConfiguration(configuration))
+			for (ILaunchConfiguration conf: configurations) {
+				if (!isMultiLaunchConfiguration(conf))
 					continue;
-				_vertices.put(configuration.getName(), new Vertex(configuration));
+				Vertex vertex = new Vertex();
+				configuration.set(vertex, conf);
+				_vertices.put(conf.getName(), vertex);
 			}
 			for (Vertex vertex: _vertices.values()) {
-				for(String name: getReferencesNames(vertex.getPayload())) {
+				for(String name: getReferencesNames(configuration.get(vertex))) {
 					Vertex neighbor = _vertices.get(name);
 					if (neighbor==null)
 						continue;
