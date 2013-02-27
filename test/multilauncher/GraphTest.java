@@ -144,6 +144,17 @@ public class GraphTest {
 		CycleDetector.haveAccessToOrCycle(graph, hasAccess);
 		ensureChecked(graph, hasAccess, "ACDEG", "B");
 	}
-	
+	@Test
+	public void testUnconnected() {
+		StringGraph graph= new StringGraph();
+		graph.new StringVertex("A", new String[]{});
+		graph.new StringVertex("B", new String[]{});
+		graph.new StringVertex("C", new String[]{});
+		graph.new StringVertex("D", new String[]{});
+		ArrayList<Boolean> hasAccess = new ArrayList<Boolean>();
+		graph.mark("D", hasAccess);
+		CycleDetector.haveAccessToOrCycle(graph, hasAccess);
+		ensureChecked(graph, hasAccess, "D", "ABC");
+	}
 
 }
