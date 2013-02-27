@@ -26,15 +26,16 @@ public class CycleDetector {
 			}
 			@Override
 			public void verticeVisited(Vertex from, Vertex to, boolean firstTime, int visitIndex) {
+				assert(to != null);
+				assert(visitIndex >= 0);
 				if (firstTime) {
 					assert(getLowLink(to) == Integer.MAX_VALUE);
 					setLowLink(to, visitIndex);
 					assert(from != null || _stack.size() == 0);
 					_stack.push(to);
 				} else {
-					//TODO: this wikipedia algorithm seems to be ineffective
-					if (from != null && _stack.contains(to)) {
-						setLowLink(from, getLowLink(to)); //cycle detected
+					if (from != null) {
+						setLowLink(from, getLowLink(to));
 					}
 				}
 				if (from != null && hasAccess.get(to)) {
@@ -43,7 +44,8 @@ public class CycleDetector {
 			}
 			@Override
 			public void verticeLeft(Vertex from, Vertex to, int visitIndex) {
-				
+				assert(from != null);
+				assert(visitIndex >= 0);
 				if (visitIndex ==  getLowLink(from)) {
 					ArrayList<Vertex> strongComponent = new ArrayList<Vertex>();
 					while(_stack.size() > 0) {
