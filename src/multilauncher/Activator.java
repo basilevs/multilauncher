@@ -54,7 +54,6 @@ public class Activator extends AbstractUIPlugin {
 						updateConfiguration(configuration, newSequence);
 				}
 			} catch (CoreException e) {
-				// TODO: consider better exception handling
 				DebugPlugin.log(e);
 			}
 		}
@@ -77,7 +76,6 @@ public class Activator extends AbstractUIPlugin {
 
 				}
 			} catch (CoreException e) {
-				// TODO: consider better exception handling
 				DebugPlugin.log(e);
 			}
 		}
